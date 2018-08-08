@@ -1,7 +1,10 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Web;
+//using System.Web.Script.Serialization;
+//using Json.NET;
 //using System.Net.Http;
 
 public class ControllerScript : MonoBehaviour
@@ -12,9 +15,10 @@ public class ControllerScript : MonoBehaviour
 //    public Text victoryText;
     private bool side; //True==X, False==O
     //private static readonly HttpClient client = new HttpClient();
+    private ArrayList playPositions = new ArrayList();
+    private int turnCount = 0;
     private string json = @"{
-        'test?':'true', 
-        'foo':'bar', 
+        'test?':'true',
         'creator':'Alexi'
     }";
 
@@ -36,7 +40,8 @@ public class ControllerScript : MonoBehaviour
     }
 
     private bool IsGameOver() {
-        if (buttonList[0].text==buttonList[1].text && buttonList[0].text==buttonList[2].text && buttonList[0].text != "" ||
+        if (playPositions.Count > 8 ||
+            buttonList[0].text==buttonList[1].text && buttonList[0].text==buttonList[2].text && buttonList[0].text != "" ||
             buttonList[3].text == buttonList[4].text && buttonList[4].text == buttonList[5].text && buttonList[5].text != "" ||
             buttonList[6].text == buttonList[7].text && buttonList[7].text == buttonList[8].text && buttonList[8].text != ""||
             buttonList[0].text == buttonList[4].text && buttonList[0].text == buttonList[8].text && buttonList[8].text != ""||
@@ -47,6 +52,11 @@ public class ControllerScript : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    public void registerClick(int i) {
+        playPositions.Add(i);
+        turnCount++;
     }
 
     public void EndTurn() {
@@ -62,18 +72,16 @@ public class ControllerScript : MonoBehaviour
 //        Debug.Log("Not ready yet. Still have work to do.");
     }
 
-/*    private void postGameEnd(string winner) {
+    private void makeJson() {
         var values = new Dictionary<string, string> {
             { "Game", "TicTacToe" },
-            { "Winner", "X" },
+            { "Winner", "?" },
+            { "Turns", turnCount.ToString() },
+            { "PlaySequence", playPositions.ToString() }
         };
+        json = (new JavaScriptSerializer()).Serialize(values);
 
-        var content = new FormUrlEncodedContent(values);
-
-        var response = await client.PostAsync("http://54.149.126.189:14056/logs", content);
-
-        var responseString = await response.Content.ReadAsStringAsync();
-    }*/
+    }
 
     void doPost() {
         string URL = "http://54.149.126.189:14056/logs";
@@ -92,7 +100,7 @@ public class ControllerScript : MonoBehaviour
         //parameters.Add("AnotherHeader", "AnotherData");
         parameters.Add("new-header", "WhyEverNot");
         //parameters.Add("Content-Length", json.Length.ToString());
-        //Replace single ' for double " 
+        //Replace single ' for double "
         //This is usefull if we have a big json object, is more easy to replace in another editor the double quote by singles one
         json = json.Replace("'", "\"");
         //Encode the JSON string into a bytes
