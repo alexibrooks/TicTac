@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Web;
+using System;
 //using System.Web.Script.Serialization;
 //using Json.NET;
 //using System.Net.Http;
@@ -65,6 +65,7 @@ public class ControllerScript : MonoBehaviour
                 buttonList[i].GetComponentInParent<XbuttonScript>().b.interactable = false;
             }
             victoryPanel.SetActive(true);
+            makeJson();
             doPost();
 
         }
@@ -73,14 +74,19 @@ public class ControllerScript : MonoBehaviour
     }
 
     private void makeJson() {
-        var values = new Dictionary<string, string> {
-            { "Game", "TicTacToe" },
-            { "Winner", "?" },
-            { "Turns", turnCount.ToString() },
-            { "PlaySequence", playPositions.ToString() }
-        };
-        json = (new JavaScriptSerializer()).Serialize(values);
-
+        //var values = new Dictionary<string, string> {
+        //    { "Game", "TicTacToe" },
+        //    { "Winner", "?" },
+        //    { "Turns", turnCount.ToString() },
+        //    { "PlaySequence", playPositions.ToString() }
+        //};
+        //        json = (new JavaScriptSerializer()).Serialize(values);
+        LoggableContent values = new LoggableContent();
+        values.turns = turnCount;
+        foreach (int pos in playPositions) {
+            values.playSequence += " " + pos.ToString();
+        }
+        json = JsonUtility.ToJson(values);
     }
 
     void doPost() {
@@ -126,4 +132,13 @@ public class ControllerScript : MonoBehaviour
         }
     }
 
+    [Serializable]
+    private class LoggableContent
+    {
+        public string game = "TicTacToe";
+        public string winner = "?";
+        public int turns = 0;
+        public string playSequence = "";
+    }
 }
+
